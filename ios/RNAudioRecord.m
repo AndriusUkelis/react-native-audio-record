@@ -6,6 +6,7 @@ RCT_EXPORT_MODULE();
 
 RCT_EXPORT_METHOD(init:(NSDictionary *) options) {
     RCTLogInfo(@"init");
+    _recordState.mDataFormat.mOutputBase64Data  = options[@"outputBase64Data"] == nil ? 1 : [options[@"outputBase64Data"] unsignedIntValue];
     _recordState.mDataFormat.mSampleRate        = options[@"sampleRate"] == nil ? 44100 : [options[@"sampleRate"] doubleValue];
     _recordState.mDataFormat.mBitsPerChannel    = options[@"bitsPerSample"] == nil ? 16 : [options[@"bitsPerSample"] unsignedIntValue];
     _recordState.mDataFormat.mChannelsPerFrame  = options[@"channels"] == nil ? 1 : [options[@"channels"] unsignedIntValue];
@@ -95,15 +96,19 @@ void HandleInputBuffer(void *inUserData,
     
     short *samples = (short *) inBuffer->mAudioData;
     long nsamples = inBuffer->mAudioDataByteSize;
-    NSData *data = [NSData dataWithBytes:samples length:nsamples];
-    NSString *str = [data base64EncodedStringWithOptions:0];
-    [pRecordState->mSelf sendEventWithName:@"data" body:str];
+    [pRecordState->mSelf sendEventWithName:@"bytes" nsamples];
+
+    if (pRecordState->mOutputBase64Data != 0) {
+        NSData *data = [NSData dataWithBytes:samples length:nsamples];
+        NSString *str = [data base64EncodedStringWithOptions:0];
+        [pRecordState->mSelf sendEventWithName:@"data" body:str];
+    }
     
     AudioQueueEnqueueBuffer(pRecordState->mQueue, inBuffer, 0, NULL);
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-    return @[@"data", @"done"];
+    return @[@"data", @"done", @"bytes"];
 }
 
 - (void)dealloc {

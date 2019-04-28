@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import java.io.File;
@@ -27,6 +28,7 @@ public class RNAudioRecordModule extends ReactContextBaseJavaModule {
     private int channelConfig;
     private int audioFormat;
     private int audioSource;
+    private int outputBase64Data;
 
     private AudioRecord recorder;
     private int bufferSize;
@@ -73,6 +75,12 @@ public class RNAudioRecordModule extends ReactContextBaseJavaModule {
             audioSource = options.getInt("audioSource");
         }
 
+        outputBase64Data = 1;
+        if (options.hasKey("outputBase64Data")) {
+            outputBase64Data = options.getInt("outputBase64Data");
+        }
+
+
         String documentDirectoryPath = getReactApplicationContext().getFilesDir().getAbsolutePath();
         outFile = documentDirectoryPath + "/" + "audio.wav";
         tmpFile = documentDirectoryPath + "/" + "temp.pcm";
@@ -108,8 +116,13 @@ public class RNAudioRecordModule extends ReactContextBaseJavaModule {
 
                         // skip first 2 buffers to eliminate "click sound"
                         if (bytesRead > 0 && ++count > 2 && isRecording == 2) {
-                            base64Data = Base64.encodeToString(buffer, Base64.NO_WRAP);
-                            eventEmitter.emit("data", base64Data);
+                            if (outputBase64Data != 0) {
+                                base64Data = Base64.encodeToString(buffer, Base64.NO_WRAP);
+                                eventEmitter.emit("data", base64Data);
+                            }
+
+                            eventEmitter.emit("bytes", bytesRead);
+
                             os.write(buffer, 0, bytesRead);
                         }
                     }

@@ -17,19 +17,30 @@ const options = {
   channels: 1,        // 1 or 2, default 1
   bitsPerSample: 16,  // 8 or 16, default 16
   audioSource: 6,     // android only (see below)
-  wavFile: 'test.wav' // default 'audio.wav'
+  wavFile: 'test.wav', // default 'audio.wav',
+  outputBase64Data: 1 // default 1
 };
 
 AudioRecord.init(options);
 
 AudioRecord.start();
 
+AudioRecord.pause();
+
 AudioRecord.stop();
 // or to get the wav file path
 audioFile = await AudioRecord.stop();
 
 AudioRecord.on('data', data => {
-  // base64-encoded audio data chunks
+  // base64-encoded audio data chunks if outputBase64Data is 1
+});
+
+AudioRecord.on('bytes', data => {
+  // Size of bytes in audio data chunks
+});
+
+AudioRecord.on('done', fileName => {
+    // Same as "await AudioRecord.stop()", but in event driven fashion
 });
 ```
 

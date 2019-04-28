@@ -12,6 +12,7 @@ AudioRecord.pause = () => RNAudioRecord.pause();
 const eventsMap = {
   data: 'data',
   done: 'done',
+  bytes: 'bytes',
 };
 
 AudioRecord.on = (event, callback) => {
